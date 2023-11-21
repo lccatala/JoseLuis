@@ -1,4 +1,4 @@
-module github.com/lccatala/Torrente
+module github.com/lccatala/Josluis
 
 go 1.21.3
 
