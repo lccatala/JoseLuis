@@ -1,4 +1,4 @@
-module github.com/lccatala/Josluis
+module github.com/lccatala/Joseluis
 
 go 1.21.3
 
