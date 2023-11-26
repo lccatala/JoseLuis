@@ -27,7 +27,7 @@ type Message struct {
 }
 
 // FormatRequest creates a REQUEST message
-func FormatRequest(index, begin, end, length int) *Message {
+func FormatRequest(index, begin, length int) *Message {
 	payload := make([]byte, 12)
 	binary.BigEndian.PutUint32(payload[0:4], uint32(index))
 	binary.BigEndian.PutUint32(payload[4:8], uint32(begin))
