@@ -21,6 +21,12 @@ type Client struct {
 	peerID   [20]byte
 }
 
+// Read reads and consumes a message from the connection
+func (c *Client) Read() (*message.Message, error) {
+	msg, err := message.Read(c.Conn)
+	return msg, err
+}
+
 func completeHandshake(conn net.Conn, infoHash, peerID [20]byte) (*handshake.Handshake, error) {
 	conn.SetDeadline(time.Now().Add(3 * time.Second))
 	defer conn.SetDeadline(time.Time{}) // Disable the deadline
@@ -113,8 +119,8 @@ func (c *Client) SendUnchoke() error {
 }
 
 // SendHave sends a Have message to the peer
-func (c *Client) SendHave() error {
-	msg := message.Message{ID: message.MsgHave}
+func (c *Client) SendHave(index int) error {
+	msg := message.FormatHave(index)
 	_, err := c.Conn.Write(msg.Serialize())
 	return err
 }
