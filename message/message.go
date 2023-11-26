@@ -2,6 +2,7 @@ package message
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -23,6 +24,63 @@ const (
 type Message struct {
 	ID      messageID
 	Payload []byte
+}
+
+// FormatRequest creates a REQUEST message
+func FormatRequest(index, begin, end, length int) *Message {
+	payload := make([]byte, 12)
+	binary.BigEndian.PutUint32(payload[0:4], uint32(index))
+	binary.BigEndian.PutUint32(payload[4:8], uint32(begin))
+	binary.BigEndian.PutUint32(payload[4:8], uint32(length))
+	return &Message{ID: MsgRequest, Payload: payload}
+}
+
+// FormatHave creates a HAVE message
+func FormatHave(index, begin, end, length int) *Message {
+	payload := make([]byte, 4)
+	binary.BigEndian.PutUint32(payload, uint32(index))
+	return &Message{ID: MsgHave, Payload: payload}
+}
+
+// ParsePiece parses a PIECE message and copies its payload into a buffer
+func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
+	if msg.ID != MsgPiece {
+		return 0, fmt.Errorf("Expected PIECE (ID %d), got ID %d", MsgPiece, msg.ID)
+	}
+	if len(msg.Payload < 0) {
+		return 0, fmt.Errorf("Payload is too short, %d < 0", len(msg.Payload))
+	}
+
+	parsedIndex := int(binary.BigEndian.Uint32(msg.Payload[0:4]))
+	if parsedIndex != index {
+		return 0, fmt.Errorf("Expected index %d, got %d", index, parsedIndex)
+	}
+
+	begin := int(binary.BigEndian.Uint32(msg.Payload[4:8]))
+	if begin >= len(buf) {
+		return 0, fmt.Errorf("Begin offset too high, %d >= %d", begin, len(buf))
+	}
+
+	data := msg.Payload[8:]
+	if begin+len(data) > len(buf) {
+		return 0, fmt.Errorf("Data too long, [%d] for offset %d with length %d", len(data), begin, len(buf))
+	}
+
+	copy(buf[begin:], data)
+	return len(data), nil
+}
+
+// ParseHave parses a HAVE message
+func ParseHave(msg *Message) (int, error) {
+	if msg.ID != MsgHave {
+		return 0, fmt.Errorf("Expected HAVE (ID %d), got ID %d", MsgHave, msg.ID)
+	}
+	if len(msg.Payload) != 4 {
+		return 0, fmt.Errorf("Expected payload length of 4, got length %d", len(msg.Payload))
+	}
+
+	index := int(binary.BigEndian.Uint32(msg.Payload))
+	return index, nil
 }
 
 // Serialize serializes a message into a buffer of the form
