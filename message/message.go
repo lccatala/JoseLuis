@@ -47,7 +47,7 @@ func ParsePiece(index int, buf []byte, msg *Message) (int, error) {
 	if msg.ID != MsgPiece {
 		return 0, fmt.Errorf("Expected PIECE (ID %d), got ID %d", MsgPiece, msg.ID)
 	}
-	if len(msg.Payload < 0) {
+	if len(msg.Payload) < 0 {
 		return 0, fmt.Errorf("Payload is too short, %d < 0", len(msg.Payload))
 	}
 
