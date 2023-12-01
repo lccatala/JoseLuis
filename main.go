@@ -14,6 +14,7 @@ func main() {
 
 	torrentFile.DownloadToFile("output")
 	if err != nil {
+		log.Fatal("Error")
 		log.Fatal(err)
 	}
 }
